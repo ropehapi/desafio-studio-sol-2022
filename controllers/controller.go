@@ -7,22 +7,9 @@ import (
 	"net/http"
 	"strings"
 	"unicode"
+
+	"github.com/ropehapi/teste-studio-sol/models"
 )
-
-type Request struct {
-	Password string
-	Rules    []Rule `json:"rules"`
-}
-
-type Rule struct {
-	Rule  string
-	Value int
-}
-
-type Response struct {
-	Verify  bool     `json:"verify"`
-	noMatch []string `json:"noMatch"`
-}
 
 func VerifyPassword(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
@@ -30,11 +17,11 @@ func VerifyPassword(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var request Request
+	var request models.Request
 	json.Unmarshal(body, &request)
 
 	password := request.Password
-	var response Response
+	var response models.Response
 
 	response.Verify = true
 	for _, value := range request.Rules {
@@ -109,23 +96,10 @@ func VerifyPassword(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	/**
-	* Parei aqui, resolvendo a questão de como devolver um JSON
-	 */
-	// w.WriteHeader(http.StatusOK)
-	// w.Header().Set("Content-Type", "application/json")
-	// resp:= make(map[string]string)
-	// resp["verify"] = strconv.FormatBool(response.Verify)
-	// resp["noMatch"] = response.noMatch
-	// jsonResp, err := json.Marshal(resp)
-	// if err != nil {
-	// 	log.Fatalf("Error happened in JSON marshal. Err: %s", err)
-	// }
-	// w.Write(jsonResp)
-	// return
+	json.NewEncoder(w).Encode(response)
 }
 
-func invalidatePassword(response *Response, rule string) {
+func invalidatePassword(response *models.Response, rule string) {
 	response.Verify = false
-	response.noMatch = append(response.noMatch, rule)
+	response.NoMatch = append(response.NoMatch, rule)
 }
